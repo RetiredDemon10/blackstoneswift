@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blackstone Swift — Online Banking</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #042C53;
+    --blue: #185FA5;
+    --mid-blue: #378ADD;
+    --light-blue: #B5D4F4;
+    --pale-blue: #E6F1FB;
+    --white: #ffffff;
+    --off-white: #f7f9fc;
+    --gray-100: #eef1f5;
+    --gray-400: #8898aa;
+    --gray-700: #2d3a4a;
+    --gold: #c9a84c;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-body); color: var(--gray-700); background: var(--white); line-height: 1.65; overflow-x: hidden; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(4,44,83,0.97); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(55,138,221,0.2);
+    padding: 0 5%; display: flex; align-items: center; justify-content: space-between; height: 72px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--mid-blue), var(--gold));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 18px; color: white; flex-shrink: 0;
+  }
+  .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-text span:first-child { font-family: var(--font-display); font-size: 17px; color: white; font-weight: 600; letter-spacing: 0.5px; }
+  .logo-text span:last-child { font-size: 10px; color: var(--light-blue); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a { text-decoration: none; color: rgba(255,255,255,0.75); font-size: 14px; transition: color 0.2s; }
+  .nav-links a:hover { color: white; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn-outline { padding: 9px 20px; border: 1px solid rgba(181,212,244,0.5); color: var(--light-blue); border-radius: 6px; background: transparent; font-size: 14px; font-family: var(--font-body); cursor: pointer; text-decoration: none; transition: all 0.2s; }
+  .btn-outline:hover { background: rgba(181,212,244,0.1); color: white; }
+  .btn-primary { padding: 9px 22px; background: var(--mid-blue); color: white; border: none; border-radius: 6px; font-size: 14px; font-family: var(--font-body); font-weight: 500; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+  .btn-primary:hover { background: var(--blue); }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; padding: 100px 5% 60px;
+  }
+  .hero-bg-img {
+    position: absolute; inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1800&q=80&fit=crop');
+    background-size: cover; background-position: center;
+  }
+  .hero-bg-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(4,44,83,0.93) 0%, rgba(10,61,107,0.88) 50%, rgba(13,79,136,0.82) 100%);
+  }
+  .hero-bg-circle { position: absolute; border-radius: 50%; opacity: 0.07; background: var(--mid-blue); }
+  .hero-bg-circle.c1 { width: 700px; height: 700px; top: -200px; right: -150px; }
+  .hero-bg-circle.c2 { width: 400px; height: 400px; bottom: -100px; left: -80px; opacity: 0.05; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1240px; width: 100%; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(55,138,221,0.15); border: 1px solid rgba(55,138,221,0.3); color: var(--light-blue); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; margin-bottom: 28px; }
+  .hero-tag::before { content: ''; width: 6px; height: 6px; background: #5DCAA5; border-radius: 50%; }
+  .hero-title { font-family: var(--font-display); font-size: clamp(40px,5vw,62px); color: white; line-height: 1.1; margin-bottom: 24px; font-weight: 700; }
+  .hero-title span { color: var(--gold); }
+  .hero-subtitle { font-size: 17px; color: rgba(255,255,255,0.65); max-width: 460px; margin-bottom: 40px; line-height: 1.75; }
+  .hero-cta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .btn-hero-primary { padding: 14px 32px; background: var(--mid-blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all 0.2s; }
+  .btn-hero-primary:hover { background: #1a6fc2; transform: translateY(-1px); }
+  .btn-hero-ghost { display: flex; align-items: center; gap: 8px; color: var(--light-blue); font-size: 15px; cursor: pointer; text-decoration: none; font-weight: 500; }
+  .play-btn { width: 38px; height: 38px; border: 1px solid rgba(181,212,244,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .hero-visual { display: flex; flex-direction: column; gap: 16px; }
+  .bank-card { background: linear-gradient(135deg,#185FA5,#0d4f88); border-radius: 18px; padding: 30px 28px; color: white; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+  .bank-card::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.04); }
+  .chip-rect { width: 44px; height: 32px; background: linear-gradient(135deg,var(--gold),#e8c56a); border-radius: 5px; margin-bottom: 28px; }
+  .card-number { font-size: 19px; letter-spacing: 3px; margin-bottom: 22px; font-weight: 300; opacity: 0.9; }
+  .card-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+  .card-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-bottom: 3px; }
+  .card-value { font-size: 15px; font-weight: 500; }
+  .card-network { display: flex; }
+  .card-circle { width: 32px; height: 32px; border-radius: 50%; opacity: 0.8; }
+  .card-circle:first-child { background: #e74c3c; margin-right: -12px; }
+  .card-circle:last-child { background: #f39c12; }
+  .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .hero-stat { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 18px 16px; text-align: center; }
+  .hero-stat-num { font-size: 24px; font-weight: 700; color: white; font-family: var(--font-display); line-height: 1; margin-bottom: 4px; }
+  .hero-stat-label { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
+
+  /* TRUST BAR */
+  .trust-bar { background: var(--pale-blue); border-top: 1px solid var(--light-blue); border-bottom: 1px solid var(--light-blue); padding: 20px 5%; display: flex; align-items: center; justify-content: center; gap: 48px; flex-wrap: wrap; }
+  .trust-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--blue); font-weight: 500; }
+  .trust-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0; }
+
+  /* SHARED */
+  section { padding: 96px 5%; }
+  .section-inner { max-width: 1240px; margin: 0 auto; }
+  .section-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--mid-blue); font-weight: 600; margin-bottom: 12px; }
+  .section-title { font-family: var(--font-display); font-size: clamp(30px,3.5vw,46px); color: var(--navy); line-height: 1.15; font-weight: 700; margin-bottom: 18px; }
+  .section-subtitle { font-size: 17px; color: var(--gray-400); max-width: 560px; line-height: 1.75; margin-bottom: 56px; }
+
+  /* PHOTO BANNER — full-width between sections */
+  .photo-banner { width: 100%; height: 340px; overflow: hidden; position: relative; }
+  .photo-banner img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  .photo-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(4,44,83,0.55) 0%, transparent 60%); display: flex; align-items: center; padding: 0 8%; }
+  .photo-banner-text h3 { font-family: var(--font-display); font-size: 34px; color: white; font-weight: 700; line-height: 1.2; max-width: 440px; }
+  .photo-banner-text p { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 10px; max-width: 380px; }
+
+  /* PRODUCTS */
+  #products { background: var(--off-white); }
+  .products-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+  .product-card { background: white; border: 1px solid #e2eaf4; border-radius: 16px; overflow: hidden; transition: all 0.3s; position: relative; }
+  .product-card-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .product-card-body { padding: 28px 26px; }
+  .product-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg,var(--blue),var(--mid-blue)); opacity: 0; transition: opacity 0.3s; }
+  .product-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(24,95,165,0.12); }
+  .product-card:hover::before { opacity: 1; }
+  .product-card.featured::before { opacity: 1; border-color: var(--mid-blue); }
+  .product-badge { display: inline-block; background: var(--mid-blue); color: white; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .product-icon { font-size: 28px; margin-bottom: 10px; }
+  .product-card h3 { font-family: var(--font-display); font-size: 21px; color: var(--navy); margin-bottom: 10px; font-weight: 600; }
+  .product-card p { font-size: 14px; color: var(--gray-400); line-height: 1.7; margin-bottom: 20px; }
+  .product-features { list-style: none; margin-bottom: 24px; }
+  .product-features li { font-size: 13px; color: var(--gray-700); padding: 6px 0; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--gray-100); }
+  .product-features li::before { content: '✓'; color: var(--mid-blue); font-weight: 700; font-size: 12px; }
+  .btn-card { display: inline-block; padding: 11px 24px; background: var(--pale-blue); color: var(--blue); border: 1px solid var(--light-blue); border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
+  .btn-card:hover { background: var(--blue); color: white; }
+  .btn-card-filled { background: var(--mid-blue); color: white; border-color: var(--mid-blue); }
+  .btn-card-filled:hover { background: var(--navy); border-color: var(--navy); }
+
+  /* FEATURES */
+  #features { background: white; }
+  .features-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .features-image { background: linear-gradient(135deg,var(--navy),var(--blue)); border-radius: 20px; padding: 40px 32px; color: white; position: relative; overflow: hidden; }
+  .features-image::before { content: ''; position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(255,255,255,0.04); top: -80px; right: -80px; }
+  .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .dash-title { font-size: 18px; font-weight: 600; }
+  .dash-date { font-size: 12px; opacity: 0.5; }
+  .balance-block { margin-bottom: 32px; }
+  .balance-label { font-size: 11px; opacity: 0.5; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .balance-amount { font-family: var(--font-display); font-size: 42px; font-weight: 700; line-height: 1; }
+  .balance-change { font-size: 13px; color: #5DCAA5; margin-top: 6px; }
+  .dash-bars { display: flex; flex-direction: column; gap: 14px; }
+  .dash-bar-row { display: flex; align-items: center; gap: 12px; }
+  .dash-bar-label { font-size: 12px; opacity: 0.7; width: 60px; flex-shrink: 0; }
+  .dash-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .dash-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,var(--mid-blue),var(--light-blue)); }
+  .dash-bar-val { font-size: 12px; opacity: 0.7; width: 50px; text-align: right; flex-shrink: 0; }
+  .dash-transactions { margin-top: 28px; }
+  .dash-tx-title { font-size: 12px; opacity: 0.5; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 14px; }
+  .dash-tx-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .dash-tx-left { display: flex; align-items: center; gap: 12px; }
+  .tx-avatar { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .tx-name { font-size: 13px; font-weight: 500; }
+  .tx-date { font-size: 11px; opacity: 0.45; }
+  .tx-amount { font-size: 14px; font-weight: 600; }
+  .tx-amount.credit { color: #5DCAA5; }
+  .tx-amount.debit { color: #ff7e7e; }
+  .features-list { display: flex; flex-direction: column; gap: 28px; }
+  .feature-item { display: flex; gap: 18px; padding: 24px; border: 1px solid #e2eaf4; border-radius: 14px; transition: all 0.25s; }
+  .feature-item:hover { border-color: var(--light-blue); background: var(--pale-blue); }
+  .feature-num { width: 42px; height: 42px; background: var(--navy); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; font-weight: 700; flex-shrink: 0; }
+  .feature-item h4 { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .feature-item p { font-size: 14px; color: var(--gray-400); line-height: 1.65; }
+
+  /* PEOPLE SECTION */
+  #people { background: var(--off-white); }
+  .people-header { text-align: center; max-width: 600px; margin: 0 auto 56px; }
+  .people-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+  .person-card { background: white; border: 1px solid #e2eaf4; border-radius: 16px; overflow: hidden; transition: all 0.3s; }
+  .person-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(24,95,165,0.1); }
+  .person-card img { width: 100%; height: 220px; object-fit: cover; object-position: center top; display: block; }
+  .person-card-body { padding: 22px 22px 26px; }
+  .person-card h4 { font-family: var(--font-display); font-size: 18px; color: var(--navy); margin-bottom: 4px; }
+  .person-card .role { font-size: 12px; color: var(--mid-blue); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+  .person-card p { font-size: 14px; color: var(--gray-400); line-height: 1.65; }
+
+  /* SECURITY */
+  #security { background: var(--navy); }
+  .security-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
+  .security-content .section-eyebrow { color: var(--light-blue); }
+  .security-content .section-title { color: white; }
+  .security-content .section-subtitle { color: rgba(255,255,255,0.55); margin-bottom: 40px; }
+  .security-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .sec-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(181,212,244,0.15); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; }
+  .sec-badge-icon { font-size: 26px; flex-shrink: 0; }
+  .sec-badge h5 { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
+  .sec-badge p { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.4; }
+  .security-visual { position: relative; }
+  .security-photo { width: 100%; border-radius: 20px; overflow: hidden; position: relative; }
+  .security-photo img { width: 100%; height: 380px; object-fit: cover; display: block; }
+  .security-photo-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px; background: linear-gradient(to top, rgba(4,44,83,0.92) 0%, transparent 100%); }
+  .cert-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cert-pill { background: rgba(181,212,244,0.15); border: 1px solid rgba(181,212,244,0.3); color: var(--light-blue); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+
+  /* STATS BAND */
+  .stats-band { background: linear-gradient(135deg,var(--blue),#0d4f88); padding: 72px 5%; }
+  .stats-band-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 40px; text-align: center; }
+  .stat-item-num { font-family: var(--font-display); font-size: 48px; font-weight: 700; color: white; line-height: 1; margin-bottom: 8px; }
+  .stat-item-label { font-size: 14px; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; }
+
+  /* TESTIMONIALS */
+  #testimonials { background: white; }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+  .testimonial-card { background: var(--off-white); border: 1px solid #e2eaf4; border-radius: 16px; padding: 32px 28px; transition: box-shadow 0.3s; }
+  .testimonial-card:hover { box-shadow: 0 12px 40px rgba(24,95,165,0.1); }
+  .stars { color: var(--gold); font-size: 18px; margin-bottom: 18px; letter-spacing: 3px; }
+  .testimonial-text { font-size: 15px; color: var(--gray-700); line-height: 1.75; font-style: italic; margin-bottom: 24px; }
+  .testimonial-author { display: flex; align-items: center; gap: 14px; }
+  .author-avatar-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: center top; border: 2px solid var(--light-blue); flex-shrink: 0; }
+  .author-name { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .author-role { font-size: 12px; color: var(--gray-400); }
+
+  /* TRANSFER */
+  #transfer { background: var(--off-white); }
+  .transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .transfer-form-ui { background: white; border: 1px solid #e2eaf4; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 48px rgba(24,95,165,0.08); }
+  .form-header { background: var(--navy); padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .form-header h4 { color: white; font-size: 16px; font-weight: 600; }
+  .form-header span { font-size: 12px; color: var(--light-blue); }
+  .form-body { padding: 32px 28px; }
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-400); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .form-input { width: 100%; padding: 13px 16px; border: 1.5px solid #e2eaf4; border-radius: 8px; font-size: 15px; font-family: var(--font-body); color: var(--navy); transition: border-color 0.2s; background: var(--off-white); outline: none; }
+  .form-input:focus { border-color: var(--mid-blue); background: white; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .btn-submit { width: 100%; padding: 15px; background: var(--navy); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; font-family: var(--font-body); cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+  .btn-submit:hover { background: var(--blue); }
+
+  /* IMAGE GALLERY */
+  #gallery { padding: 0; }
+  .gallery-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 300px 300px; gap: 6px; }
+  .gallery-item { overflow: hidden; position: relative; }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+  .gallery-item:hover img { transform: scale(1.05); }
+  .gallery-item.tall { grid-row: span 2; }
+  .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, rgba(4,44,83,0.85) 0%, transparent 100%); color: white; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
+  .gallery-item:hover .gallery-caption { opacity: 1; }
+
+  /* FAQ */
+  #faq { background: var(--off-white); }
+  .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px; margin: 0 auto; }
+  .faq-item { background: white; border: 1px solid #e2eaf4; border-radius: 14px; padding: 24px 26px; transition: all 0.25s; }
+  .faq-item:hover { border-color: var(--light-blue); box-shadow: 0 6px 24px rgba(24,95,165,0.07); }
+  .faq-q { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 10px; line-height: 1.4; }
+  .faq-a { font-size: 14px; color: var(--gray-400); line-height: 1.7; }
+
+  /* APP PROMO */
+  #app-promo { background: var(--navy); }
+  .app-promo-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .app-promo-content .section-eyebrow { color: var(--light-blue); }
+  .app-promo-content .section-title { color: white; }
+  .app-promo-content .section-subtitle { color: rgba(255,255,255,0.55); }
+  .app-store-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+  .store-btn { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 12px 20px; color: white; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+  .store-btn:hover { background: rgba(255,255,255,0.14); }
+  .store-btn-icon { font-size: 24px; }
+  .store-btn-text { line-height: 1.2; }
+  .store-btn-sub { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; display: block; }
+  .store-btn-name { font-size: 15px; font-weight: 600; display: block; }
+  .phone-mockup { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 40px; padding: 20px; width: 280px; margin: 0 auto; }
+  .phone-screen { background: var(--pale-blue); border-radius: 28px; padding: 20px 16px; overflow: hidden; }
+  .phone-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .phone-greeting { font-size: 12px; color: var(--navy); }
+  .phone-avatar { width: 32px; height: 32px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; font-weight: 700; }
+  .phone-balance-label { font-size: 11px; color: var(--gray-400); margin-bottom: 4px; }
+  .phone-balance { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--navy); line-height: 1; margin-bottom: 20px; }
+  .phone-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
+  .phone-action { background: white; border-radius: 10px; padding: 12px 6px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .phone-action-icon { font-size: 18px; margin-bottom: 4px; }
+  .phone-action-label { font-size: 9px; color: var(--gray-400); font-weight: 600; }
+  .phone-tx-title { font-size: 11px; font-weight: 700; color: var(--navy); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .phone-tx { display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .phone-tx-name { font-size: 12px; font-weight: 500; color: var(--navy); }
+  .phone-tx-date { font-size: 10px; color: var(--gray-400); }
+  .phone-tx-amt { font-size: 13px; font-weight: 700; }
+
+  /* FOOTER */
+  footer { background: #020f1c; border-top: 1px solid rgba(55,138,221,0.15); }
+  .footer-top { padding: 72px 5% 48px; max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 48px; }
+  .footer-brand p { font-size: 14px; color: rgba(255,255,255,0.4); max-width: 280px; line-height: 1.75; margin: 16px 0 28px; }
+  .footer-socials { display: flex; gap: 10px; }
+  .social-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+  .social-btn:hover { background: rgba(55,138,221,0.25); }
+  .footer-col h5 { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-col a { font-size: 14px; color: rgba(255,255,255,0.45); text-decoration: none; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--light-blue); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding: 22px 5%; max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.3); }
+  .footer-bottom-links { display: flex; gap: 24px; }
+  .footer-bottom-links a { font-size: 12px; color: rgba(255,255,255,0.3); text-decoration: none; }
+  .footer-bottom-links a:hover { color: var(--light-blue); }
+
+  /* FADE IN */
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero-grid, .features-layout, .security-grid, .transfer-grid, .app-promo-inner { grid-template-columns: 1fr; gap: 48px; }
+    .products-grid, .testimonials-grid, .people-grid { grid-template-columns: 1fr; }
+    .stats-band-inner { grid-template-columns: repeat(2,1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .faq-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+    .gallery-item.tall { grid-row: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">BS</div>
+    <div class="logo-text">
+      <span>Blackstone Swift</span>
+      <span>Private Banking</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#products">Products</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#transfer">Transfer</a></li>
+    <li><a href="#faq">Help</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn-outline">Sign In</a>
+    <a href="#" class="btn-primary">Open Account</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-img"></div>
+  <div class="hero-bg-overlay"></div>
+  <div class="hero-bg-circle c1"></div>
+  <div class="hero-bg-circle c2"></div>
+  <div class="hero-grid">
+    <div class="hero-content fade-in">
+      <div class="hero-tag">FDIC Insured · Zero-Fee Banking</div>
+      <h1 class="hero-title">Banking Built for<br><span>Your Future</span></h1>
+      <p class="hero-subtitle">Blackstone Swift gives you a smarter, faster way to manage your money — with zero fees, instant transfers, and intelligent insights that work around the clock.</p>
+      <div class="hero-cta">
+        <button class="btn-hero-primary">Open a Free Account</button>
+        <a href="#features" class="btn-hero-ghost">
+          <div class="play-btn">▶</div>
+          See How It Works
+        </a>
+      </div>
+    </div>
+    <div class="hero-visual fade-in">
+      <div class="bank-card">
+        <div class="chip-rect"></div>
+        <div class="card-number">4532 •••• •••• 7841</div>
+        <div class="card-footer">
+          <div><div class="card-label">Card Holder</div><div class="card-value">Alexandra Chen</div></div>
+          <div><div class="card-label">Expires</div><div class="card-value">09/29</div></div>
+          <div class="card-network"><div class="card-circle"></div><div class="card-circle"></div></div>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num">$0</div><div class="hero-stat-label">Monthly Fees</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">4.8%</div><div class="hero-stat-label">APY Savings</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">2M+</div><div class="hero-stat-label">Customers</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><div class="trust-icon">🏦</div> FDIC Insured up to $250,000</div>
+  <div class="trust-item"><div class="trust-icon">🔒</div> 256-bit SSL Encryption</div>
+  <div class="trust-item"><div class="trust-icon">⚡</div> Instant Transfers 24/7</div>
+  <div class="trust-item"><div class="trust-icon">🌍</div> Free ATMs Worldwide</div>
+  <div class="trust-item"><div class="trust-icon">🤝</div> Award-Winning Support</div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="section-inner">
+    <div class="section-eyebrow">Our Products</div>
+    <h2 class="section-title fade-in">Everything You Need<br>in One Place</h2>
+    <p class="section-subtitle fade-in">From everyday checking to long-term investments, Blackstone Swift has accounts designed to help every type of customer thrive.</p>
+    <div class="products-grid">
+      <div class="product-card fade-in">
+        <img class="product-card-img" src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80&fit=crop" alt="Checking account banking" loading="lazy">
+        <div class="product-card-body">
+          <div class="product-icon">💳</div>
+          <h3>Swift Checking</h3>
+          <p>Your everyday account. No minimums, no surprises — just seamless spending and instant access to your money.</p>
+          <ul class="product-features">
+            <li>No monthly fees</li>
+            <li>Free debit card & contactless pay</li>
+            <li>Real-time transaction alerts</li>
+            <li>Overdraft protection up to $200</li>
+          </ul>
+          <a href="#" class="btn-card">Open Checking</a>
+        </div>
+      </div>
+      <div class="product-card featured fade-in">
+        <img class="product-card-img" src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&q=80&fit=crop" alt="Savings account" loading="lazy">
+        <div class="product-card-body">
+          <div class="product-badge">Most Popular</div>
+          <div class="product-icon">💰</div>
+          <h3>High-Yield Savings</h3>
+          <p>Watch your money grow faster with one of the best APYs in the country. Start with as little as $1.</p>
+          <ul class="product-features">
+            <li>4.80% APY — updated weekly</li>
+            <li>No minimum balance required</li>
+            <li>FDIC insured to $250,000</li>
+            <li>Automatic round-up savings</li>
+          </ul>
+          <a href="#" class="btn-card btn-card-filled">Start Saving</a>
+        </div>
+      </div>
+      <div class="product-card fade-in">
+        <img class="product-card-img" src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80&fit=crop" alt="Investment account charts" loading="lazy">
+        <div class="product-card-body">
+          <div class="product-icon">📈</div>
+          <h3>Swift Invest</h3>
+          <p>Grow your wealth with commission-free stocks, ETFs, and crypto — all managed from the same dashboard.</p>
+          <ul class="product-features">
+            <li>$0 commission trades</li>
+            <li>Fractional shares from $1</li>
+            <li>Auto-invest & DCA tools</li>
+            <li>Tax-loss harvesting</li>
+          </ul>
+          <a href="#" class="btn-card">Start Investing</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO BANNER 1 -->
+<div class="photo-banner">
+  <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1800&q=80&fit=crop" alt="Business professionals banking" loading="lazy">
+  <div class="photo-banner-overlay">
+    <div class="photo-banner-text">
+      <h3>Trusted by Millions of Professionals Worldwide</h3>
+      <p>Join over 2 million customers who have made Blackstone Swift their primary financial home.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="features-layout">
+      <div class="features-image fade-in">
+        <div class="dash-header">
+          <div class="dash-title">Dashboard</div>
+          <div class="dash-date">May 28, 2026</div>
+        </div>
+        <div class="balance-block">
+          <div class="balance-label">Total Balance</div>
+          <div class="balance-amount">$48,291.50</div>
+          <div class="balance-change">↑ +$1,240.00 this month</div>
+        </div>
+        <div class="dash-bars">
+          <div class="dash-bar-row"><span class="dash-bar-label">Savings</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:78%"></div></div><span class="dash-bar-val">$31,200</span></div>
+          <div class="dash-bar-row"><span class="dash-bar-label">Checking</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:40%"></div></div><span class="dash-bar-val">$9,841</span></div>
+          <div class="dash-bar-row"><span class="dash-bar-label">Invest</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:55%;background:linear-gradient(90deg,#5DCAA5,#9FE1CB)"></div></div><span class="dash-bar-val">$7,250</span></div>
+        </div>
+        <div class="dash-transactions">
+          <div class="dash-tx-title">Recent Transactions</div>
+          <div class="dash-tx-row"><div class="dash-tx-left"><div class="tx-avatar">🛒</div><div><div class="tx-name">Whole Foods</div><div class="tx-date">Today, 11:23am</div></div></div><div class="tx-amount debit">-$67.40</div></div>
+          <div class="dash-tx-row"><div class="dash-tx-left"><div class="tx-avatar">💼</div><div><div class="tx-name">Salary Deposit</div><div class="tx-date">May 27</div></div></div><div class="tx-amount credit">+$5,200.00</div></div>
+          <div class="dash-tx-row"><div class="dash-tx-left"><div class="tx-avatar">☕</div><div><div class="tx-name">Blue Bottle Coffee</div><div class="tx-date">May 27</div></div></div><div class="tx-amount debit">-$8.50</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-eyebrow">Platform Features</div>
+        <h2 class="section-title fade-in">Banking That Thinks<br>Ahead of You</h2>
+        <p class="section-subtitle fade-in" style="margin-bottom:40px;">Our intelligent platform monitors your finances, alerts you to unusual activity, and helps you make better money decisions every day.</p>
+        <div class="features-list">
+          <div class="feature-item fade-in"><div class="feature-num">01</div><div><h4>Smart Spending Insights</h4><p>AI-categorized transactions and monthly reports help you understand exactly where your money goes.</p></div></div>
+          <div class="feature-item fade-in"><div class="feature-num">02</div><div><h4>Instant Global Transfers</h4><p>Send money to 150+ countries in seconds with real exchange rates and zero hidden fees.</p></div></div>
+          <div class="feature-item fade-in"><div class="feature-num">03</div><div><h4>Virtual & Physical Cards</h4><p>Create unlimited virtual cards for secure online shopping and freeze them instantly if needed.</p></div></div>
+          <div class="feature-item fade-in"><div class="feature-num">04</div><div><h4>Automatic Savings Rules</h4><p>Set rules to sweep funds automatically — round-ups, percentage-based, or scheduled transfers.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="stats-band-inner">
+    <div class="fade-in"><div class="stat-item-num">2.4M+</div><div class="stat-item-label">Active Customers</div></div>
+    <div class="fade-in"><div class="stat-item-num">$18B+</div><div class="stat-item-label">Assets Managed</div></div>
+    <div class="fade-in"><div class="stat-item-num">150+</div><div class="stat-item-label">Countries Supported</div></div>
+    <div class="fade-in"><div class="stat-item-num">99.99%</div><div class="stat-item-label">Uptime Reliability</div></div>
+  </div>
+</div>
+
+<!-- IMAGE GALLERY -->
+<section id="gallery" style="padding:0;">
+  <div class="gallery-grid">
+    <div class="gallery-item tall">
+      <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&q=80&fit=crop" alt="Financial planning professional" loading="lazy">
+      <div class="gallery-caption">Expert financial advisors ready to help you plan your future</div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=600&q=80&fit=crop" alt="Online banking on laptop" loading="lazy">
+      <div class="gallery-caption">Seamless online banking experience</div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&q=80&fit=crop" alt="Mobile banking" loading="lazy">
+      <div class="gallery-caption">Bank anywhere, anytime on mobile</div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80&fit=crop" alt="Business professional" loading="lazy">
+      <div class="gallery-caption">Built for professionals and families alike</div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&q=80&fit=crop" alt="Payment technology" loading="lazy">
+      <div class="gallery-caption">Next-generation payment solutions</div>
+    </div>
+  </div>
+</section>
+
+<!-- PEOPLE TEAM -->
+<section id="people">
+  <div class="section-inner">
+    <div class="people-header">
+      <div class="section-eyebrow">Real People. Real Results.</div>
+      <h2 class="section-title fade-in">Banking That Works<br>for Everyone</h2>
+      <p style="color:var(--gray-400);font-size:16px;line-height:1.75;">Our customers come from every walk of life. Here's how Blackstone Swift helps people like you reach their financial goals.</p>
+    </div>
+    <div class="people-grid">
+      <div class="person-card fade-in">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80&fit=crop&crop=top" alt="Professional woman banking customer" loading="lazy">
+        <div class="person-card-body">
+          <h4>Sarah Mensah</h4>
+          <div class="role">Small Business Owner</div>
+          <p>"I manage payroll, invoicing, and savings all from one Blackstone Swift account. It's saved me hours every week and thousands in fees."</p>
+        </div>
+      </div>
+      <div class="person-card fade-in">
+        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80&fit=crop&crop=top" alt="Professional man banking customer" loading="lazy">
+        <div class="person-card-body">
+          <h4>David Okafor</h4>
+          <div class="role">Software Engineer</div>
+          <p>"The 4.8% APY is real. I've been saving for a house and my money grows faster here than anywhere else I've tried."</p>
+        </div>
+      </div>
+      <div class="person-card fade-in">
+        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&q=80&fit=crop&crop=top" alt="Young woman banking customer" loading="lazy">
+        <div class="person-card-body">
+          <h4>Priya Sharma</h4>
+          <div class="role">Graduate Student</div>
+          <p>"I send money home to my family every month. Zero fees, real exchange rates, arrives in minutes. Nothing else even comes close."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO BANNER 2 -->
+<div class="photo-banner">
+  <img src="https://images.unsplash.com/photo-1556742400-b5b7c512ad29?w=1800&q=80&fit=crop" alt="Modern banking technology" loading="lazy">
+  <div class="photo-banner-overlay">
+    <div class="photo-banner-text">
+      <h3>Next-Generation Financial Technology</h3>
+      <p>Built on the world's most secure and reliable banking infrastructure.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="section-inner">
+    <div class="security-grid">
+      <div class="security-content">
+        <div class="section-eyebrow">World-Class Security</div>
+        <h2 class="section-title fade-in">Your Money Is<br>Always Protected</h2>
+        <p class="section-subtitle fade-in">We invest more in security than any other online bank. Every transaction, every login, every transfer is monitored in real time.</p>
+        <div class="security-badges">
+          <div class="sec-badge fade-in"><div class="sec-badge-icon">🔐</div><div><h5>Biometric Login</h5><p>Face ID & fingerprint on all devices</p></div></div>
+          <div class="sec-badge fade-in"><div class="sec-badge-icon">🛡️</div><div><h5>Fraud Detection</h5><p>AI-powered 24/7 monitoring</p></div></div>
+          <div class="sec-badge fade-in"><div class="sec-badge-icon">🔑</div><div><h5>2FA Everywhere</h5><p>Every sign-in is double-verified</p></div></div>
+          <div class="sec-badge fade-in"><div class="sec-badge-icon">📜</div><div><h5>FDIC Insured</h5><p>Up to $250,000 guaranteed</p></div></div>
+        </div>
+      </div>
+      <div class="security-visual fade-in">
+        <div class="security-photo">
+          <img src="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=700&q=80&fit=crop" alt="Bank security technology" loading="lazy">
+          <div class="security-photo-overlay">
+            <p style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase;">Certified & Compliant</p>
+            <div class="cert-pills">
+              <span class="cert-pill">SOC 2 Type II</span>
+              <span class="cert-pill">ISO 27001</span>
+              <span class="cert-pill">PCI DSS</span>
+              <span class="cert-pill">AES-256</span>
+              <span class="cert-pill">GDPR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-inner">
+    <div class="section-eyebrow">Customer Stories</div>
+    <h2 class="section-title fade-in">Loved by Millions</h2>
+    <p class="section-subtitle fade-in">Real words from real customers who've switched their banking to Blackstone Swift.</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card fade-in">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Switching to Blackstone Swift was the smartest financial decision I made this year. The savings rate alone paid for my vacation."</p>
+        <div class="testimonial-author">
+          <img class="author-avatar-img" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80&fit=crop&crop=face" alt="James M." loading="lazy">
+          <div><div class="author-name">James M.</div><div class="author-role">Software Engineer, Austin TX</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"I send money to my family in Lagos every month. The fees are zero, the rate is real, and it arrives in minutes. Nothing else comes close."</p>
+        <div class="testimonial-author">
+          <img class="author-avatar-img" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&q=80&fit=crop&crop=face" alt="Adaeze O." loading="lazy">
+          <div><div class="author-name">Adaeze O.</div><div class="author-role">Nurse Practitioner, London</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"The dashboard is so clean and powerful. I can see every account, every investment, and every transaction in one beautiful view."</p>
+        <div class="testimonial-author">
+          <img class="author-avatar-img" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80&fit=crop&crop=face" alt="Sophia K." loading="lazy">
+          <div><div class="author-name">Sophia K.</div><div class="author-role">Small Business Owner, NYC</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSFER -->
+<section id="transfer">
+  <div class="section-inner">
+    <div class="transfer-grid">
+      <div>
+        <div class="section-eyebrow">Send Money</div>
+        <h2 class="section-title fade-in">Transfer Funds<br>Globally, Instantly</h2>
+        <p class="section-subtitle fade-in" style="margin-bottom:32px;">Whether you're paying a friend across town or sending support across continents — Blackstone Swift makes it effortless and free.</p>
+        <img src="https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=700&q=80&fit=crop" alt="Person using mobile banking for transfer" loading="lazy" style="width:100%;border-radius:16px;margin-bottom:28px;height:220px;object-fit:cover;">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;background:var(--pale-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">⚡</div><div><strong style="color:var(--navy);font-size:14px;">Arrives in seconds</strong><br><span style="font-size:13px;color:var(--gray-400);">Domestic transfers complete in under 10 seconds, any time of day.</span></div></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;background:var(--pale-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🌍</div><div><strong style="color:var(--navy);font-size:14px;">150+ countries</strong><br><span style="font-size:13px;color:var(--gray-400);">International transfers at mid-market exchange rates, zero markup.</span></div></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;background:var(--pale-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">💸</div><div><strong style="color:var(--navy);font-size:14px;">Zero transfer fees</strong><br><span style="font-size:13px;color:var(--gray-400);">No fees on standard transfers, ever. What you send is what arrives.</span></div></div>
+        </div>
+      </div>
+      <div class="transfer-form-ui fade-in">
+        <div class="form-header"><h4>Send Money</h4><span>Balance: $9,841.00</span></div>
+        <div class="form-body">
+          <div class="form-group"><label class="form-label">Recipient Name or Email</label><input class="form-input" type="text" placeholder="Search contacts or enter email..."></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Amount</label><input class="form-input" type="text" placeholder="$0.00"></div>
+            <div class="form-group"><label class="form-label">Currency</label><select class="form-input" style="cursor:pointer;"><option>USD — Dollar</option><option>EUR — Euro</option><option>GBP — Pound</option><option>NGN — Naira</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Note (optional)</label><input class="form-input" type="text" placeholder="What's this for?"></div>
+          <div style="background:var(--pale-blue);border:1px solid var(--light-blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--blue);margin-bottom:16px;">✓ &nbsp;This transfer will arrive <strong>instantly</strong> with no fees.</div>
+          <button class="btn-submit">Send Money →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:560px;margin:0 auto 56px;">
+      <div class="section-eyebrow">Frequently Asked</div>
+      <h2 class="section-title fade-in">Got Questions?</h2>
+      <p class="section-subtitle fade-in" style="margin:0 auto;">We have answers. If you don't find what you need, our support team is available 24/7.</p>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-item fade-in"><div class="faq-q">Is Blackstone Swift FDIC insured?</div><div class="faq-a">Yes. All deposits are FDIC insured up to $250,000 per depositor, giving you federal protection on every dollar you hold with us.</div></div>
+      <div class="faq-item fade-in"><div class="faq-q">How quickly can I open an account?</div><div class="faq-a">Most accounts are approved in under 3 minutes. Just fill in your details, verify your identity, and you're ready to go.</div></div>
+      <div class="faq-item fade-in"><div class="faq-q">Are there any hidden fees?</div><div class="faq-a">Absolutely none. No monthly maintenance fees, no minimum balance requirements, and no fees on standard transfers. Ever.</div></div>
+      <div class="faq-item fade-in"><div class="faq-q">Can I use Blackstone Swift internationally?</div><div class="faq-a">Yes. Your debit card works at any ATM worldwide for free, and you can send money to 150+ countries at real exchange rates.</div></div>
+      <div class="faq-item fade-in"><div class="faq-q">What's the savings APY?</div><div class="faq-a">Our High-Yield Savings account currently offers 4.80% APY, reviewed and updated weekly to ensure you always get a competitive rate.</div></div>
+      <div class="faq-item fade-in"><div class="faq-q">How do I contact support?</div><div class="faq-a">We're available 24/7 via live chat in the app, email, and phone. Average first-response time is under 90 seconds.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- APP PROMO -->
+<section id="app-promo">
+  <div class="app-promo-inner">
+    <div class="app-promo-content">
+      <div class="section-eyebrow">Mobile App</div>
+      <h2 class="section-title fade-in">Your Bank, In Your Pocket</h2>
+      <p class="section-subtitle fade-in">The Blackstone Swift app puts the full power of your account in the palm of your hand — available on iOS and Android.</p>
+      <div class="app-store-btns">
+        <a href="#" class="store-btn"><span class="store-btn-icon">🍎</span><span class="store-btn-text"><span class="store-btn-sub">Download on the</span><span class="store-btn-name">App Store</span></span></a>
+        <a href="#" class="store-btn"><span class="store-btn-icon">▶</span><span class="store-btn-text"><span class="store-btn-sub">Get it on</span><span class="store-btn-name">Google Play</span></span></a>
+      </div>
+      <div style="margin-top:36px;">
+        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop" alt="Person using Blackstone Swift mobile banking app" loading="lazy" style="width:100%;border-radius:16px;height:220px;object-fit:cover;object-position:center;">
+      </div>
+    </div>
+    <div class="fade-in">
+      <div class="phone-mockup">
+        <div class="phone-screen">
+          <div class="phone-top"><div class="phone-greeting">Good morning, Alex 👋</div><div class="phone-avatar">AC</div></div>
+          <div class="phone-balance-label">Available Balance</div>
+          <div class="phone-balance">$9,841.00</div>
+          <div class="phone-actions">
+            <div class="phone-action"><div class="phone-action-icon">💸</div><div class="phone-action-label">Send</div></div>
+            <div class="phone-action"><div class="phone-action-icon">📥</div><div class="phone-action-label">Receive</div></div>
+            <div class="phone-action"><div class="phone-action-icon">💳</div><div class="phone-action-label">Cards</div></div>
+            <div class="phone-action"><div class="phone-action-icon">📊</div><div class="phone-action-label">Invest</div></div>
+          </div>
+          <div class="phone-tx-title">Recent Activity</div>
+          <div class="phone-tx"><div><div class="phone-tx-name">🛒 Whole Foods</div><div class="phone-tx-date">Today</div></div><div class="phone-tx-amt" style="color:#e74c3c;">-$67.40</div></div>
+          <div class="phone-tx"><div><div class="phone-tx-name">💼 Salary</div><div class="phone-tx-date">May 27</div></div><div class="phone-tx-amt" style="color:#1D9E75;">+$5,200</div></div>
+          <div class="phone-tx"><div><div class="phone-tx-name">☕ Blue Bottle</div><div class="phone-tx-date">May 27</div></div><div class="phone-tx-amt" style="color:#e74c3c;">-$8.50</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo" style="display:inline-flex;"><div class="logo-mark">BS</div><div class="logo-text"><span>Blackstone Swift</span><span style="color:rgba(181,212,244,0.5);">Private Banking</span></div></a>
+      <p>Smart, safe, and fee-free banking for people who expect more from their financial institution. Built for today, designed for tomorrow.</p>
+      <div class="footer-socials"><div class="social-btn">𝕏</div><div class="social-btn">in</div><div class="social-btn">f</div><div class="social-btn">📷</div></div>
+    </div>
+    <div class="footer-col"><h5>Products</h5><ul><li><a href="#">Checking Accounts</a></li><li><a href="#">Savings Accounts</a></li><li><a href="#">Investment Accounts</a></li><li><a href="#">Business Banking</a></li><li><a href="#">Credit Cards</a></li></ul></div>
+    <div class="footer-col"><h5>Company</h5><ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Press Room</a></li><li><a href="#">Investor Relations</a></li><li><a href="#">Blog</a></li></ul></div>
+    <div class="footer-col"><h5>Support</h5><ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Security Center</a></li><li><a href="#">Fraud Alerts</a></li><li><a href="#">Status Page</a></li></ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Blackstone Swift Financial, Inc. All rights reserved. FDIC Insured · Equal Housing Lender.</p>
+    <div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Settings</a><a href="#">Accessibility</a></div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+
+<!-- Smartsupp Live Chat script -->
+<script type="text/javascript">
+var _smartsupp = _smartsupp || {};
+_smartsupp.key = '305c204891b84bc7d175aca2c4807c221c36c11e';
+window.smartsupp||(function(d) {
+  var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
+  s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+  c.type='text/javascript';c.charset='utf-8';c.async=true;
+  c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
+})(document);
+</script>
+<noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
+
+
+</body>
+</html>
